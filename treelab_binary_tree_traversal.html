@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TreeLab — Binary Tree Traversal Explorer</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--ink:#17243b;--muted:#64748b;--blue:#2563eb;--cyan:#06b6d4;--purple:#7c3aed;--green:#059669;--orange:#ea580c;--line:#dbe4f0;--shadow:0 12px 35px #18315312}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5}
+header{background:linear-gradient(120deg,#102448,#174a83 58%,#087e9b);color:white;padding:32px 5vw 28px;position:relative;overflow:hidden}
+header:after{content:"";position:absolute;width:340px;height:340px;border:1px solid #ffffff25;border-radius:50%;right:-70px;top:-190px;box-shadow:0 0 0 35px #ffffff0b,0 0 0 75px #ffffff08}
+.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:.74rem;font-weight:800;color:#a5e8ff}
+h1{font-size:clamp(2rem,4vw,3.2rem);line-height:1.1;margin:10px 0 12px;letter-spacing:-.04em}header p{max-width:760px;color:#dceeff;margin:0;font-size:1.02rem}
+main{width:min(1200px,92vw);margin:26px auto 60px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.stat,.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.stat{padding:16px 18px}.stat small{color:var(--muted);font-weight:700}.stat strong{display:block;font-size:1.5rem;margin-top:4px}
+.layout{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;align-items:start}.panel{padding:22px;margin-bottom:18px}.panel h2{font-size:1.18rem;margin:0 0 4px;letter-spacing:-.02em}.sub{color:var(--muted);font-size:.91rem;margin:0 0 16px}
+.tree-wrap{width:100%;overflow:hidden;border-radius:14px;background:linear-gradient(180deg,#f8fbff,#f1f7ff);border:1px solid #e2eaf6}
+svg#tree{display:block;width:100%;height:auto;min-height:280px}
+.edge{stroke:#b9c9df;stroke-width:3;transition:stroke .2s}.edge.active{stroke:var(--cyan);stroke-width:5}
+.node circle{fill:#fff;stroke:#8ca6c7;stroke-width:2.5;transition:all .25s}.node text{font-weight:800;font-size:16px;fill:#24415f;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.node.visited circle{fill:#dbeafe;stroke:var(--blue);stroke-width:4}.node.current circle{fill:#ffedd5;stroke:var(--orange);stroke-width:5;filter:drop-shadow(0 0 5px #fb923c66)}.node.done circle{fill:#d1fae5;stroke:var(--green)}.node.current text{fill:#9a3412}
+.controls{display:flex;gap:9px;flex-wrap:wrap;margin:15px 0 12px}.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer;background:#e8effb;color:#24415f;transition:transform .15s,opacity .15s}.btn:hover{transform:translateY(-1px)}.btn.primary{background:var(--blue);color:white}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+select{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:white;color:var(--ink);font:inherit}
+.progress{height:8px;background:#e8eef7;border-radius:99px;overflow:hidden}.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--cyan));transition:width .2s}
+.visit-output{display:flex;gap:8px;flex-wrap:wrap;min-height:43px;align-items:center;padding:10px 0 0}.pill{border-radius:9px;padding:6px 10px;background:#e8f0ff;color:#1d4ed8;font-weight:800;animation:pop .25s ease}.pill.current{background:#ffedd5;color:#9a3412;outline:2px solid #fdba74}
+@keyframes pop{from{transform:scale(.75);opacity:.3}to{transform:scale(1);opacity:1}}
+.queue{display:flex;gap:7px;flex-wrap:wrap;min-height:43px;padding:8px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:12px}.queue span{background:#e0f2fe;color:#075985;padding:5px 9px;border-radius:8px;font-weight:800}
+.method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.method{padding:13px;border:1px solid var(--line);border-radius:13px;background:#fbfdff}.method b{display:block;margin-bottom:4px}.method code{color:#1d4ed8;font-size:.9rem}
+.note{padding:12px 14px;background:#eff6ff;border-left:4px solid var(--blue);border-radius:8px;color:#24415f;font-size:.91rem}
+table{width:100%;border-collapse:collapse;font-size:.92rem}th,td{text-align:left;padding:11px 10px;border-bottom:1px solid #e7edf5}th{color:#52647c;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em}td code{font-weight:800;color:#1d4ed8}
+.chart{display:flex;flex-direction:column;gap:14px;margin-top:12px}.bar-row{display:grid;grid-template-columns:115px 1fr 45px;gap:10px;align-items:center;font-size:.9rem}.bar-track{height:13px;border-radius:99px;background:#edf2f8;overflow:hidden}.bar-fill{height:100%;border-radius:99px}.blue{background:#2563eb}.purple{background:#7c3aed}.green{background:#059669}.orange{background:#ea580c}
+footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.method-grid{grid-template-columns:1fr}.panel{padding:17px}.bar-row{grid-template-columns:95px 1fr 40px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Data Structures & Algorithms • Interactive Lab</div>
+  <h1>TreeLab: Binary Tree Traversal</h1>
+  <p>Explore how a program visits every node in a binary tree. Run recursive depth-first traversals and iterative level-order traversal, watch the nodes light up, and compare their complexity.</p>
+</header>
+<main>
+  <section class="stats">
+    <div class="stat"><small>DATA STRUCTURE</small><strong>Binary Tree</strong></div>
+    <div class="stat"><small>NODES</small><strong>7</strong></div>
+    <div class="stat"><small>TIME COMPLEXITY</small><strong>O(n)</strong></div>
+    <div class="stat"><small>TRAVERSALS</small><strong>4 methods</strong></div>
+  </section>
+  <div class="layout">
+    <div>
+      <section class="panel">
+        <h2>01 · Interactive tree diagram</h2>
+        <p class="sub">Practical dataset: a simple product-category hierarchy. Select a traversal and press Play or Step.</p>
+        <div class="tree-wrap">
+          <svg id="tree" viewBox="0 0 700 390" role="img" aria-label="Binary tree with seven nodes">
+            <g id="edges">
+              <line class="edge" data-edge="A-B" x1="350" y1="55" x2="190" y2="145"/>
+              <line class="edge" data-edge="A-C" x1="350" y1="55" x2="510" y2="145"/>
+              <line class="edge" data-edge="B-D" x1="190" y1="145" x2="105" y2="245"/>
+              <line class="edge" data-edge="B-E" x1="190" y1="145" x2="275" y2="245"/>
+              <line class="edge" data-edge="C-F" x1="510" y1="145" x2="425" y2="245"/>
+              <line class="edge" data-edge="C-G" x1="510" y1="145" x2="595" y2="245"/>
+            </g>
+            <g class="node" data-node="A" transform="translate(350 55)"><circle r="28"/><text y="1">A</text></g>
+            <g class="node" data-node="B" transform="translate(190 145)"><circle r="28"/><text y="1">B</text></g>
+            <g class="node" data-node="C" transform="translate(510 145)"><circle r="28"/><text y="1">C</text></g>
+            <g class="node" data-node="D" transform="translate(105 245)"><circle r="28"/><text y="1">D</text></g>
+            <g class="node" data-node="E" transform="translate(275 245)"><circle r="28"/><text y="1">E</text></g>
+            <g class="node" data-node="F" transform="translate(425 245)"><circle r="28"/><text y="1">F</text></g>
+            <g class="node" data-node="G" transform="translate(595 245)"><circle r="28"/><text y="1">G</text></g>
+            <g fill="#64748b" font-size="12" text-anchor="middle">
+              <text x="350" y="100">Root</text><text x="190" y="190">Left subtree</text><text x="510" y="190">Right subtree</text>
+              <text x="105" y="295">Phones</text><text x="275" y="295">Laptops</text><text x="425" y="295">Audio</text><text x="595" y="295">Cameras</text>
+            </g>
+          </svg>
+        </div>
+        <div class="controls">
+          <select id="method" aria-label="Traversal method">
+            <option value="pre">Preorder · Root-Left-Right</option>
+            <option value="in">Inorder · Left-Root-Right</option>
+            <option value="post">Postorder · Left-Right-Root</option>
+            <option value="level">Level order · Queue</option>
+          </select>
+          <button class="btn primary" id="play">▶ Play</button>
+          <button class="btn" id="step">Step →</button>
+          <button class="btn" id="reset">↺ Reset</button>
+        </div>
+        <div class="progress"><span id="progress"></span></div>
+        <div class="visit-output" id="visits"><span style="color:#64748b">Visited nodes will appear here…</span></div>
+        <p class="sub" id="status" aria-live="polite" style="margin:8px 0 0">Ready. Choose a traversal to begin.</p>
+      </section>
+      <section class="panel">
+        <h2>02 · Traversal logic</h2>
+        <p class="sub">The order changes, but each method visits all seven nodes exactly once.</p>
+        <div class="method-grid">
+          <div class="method"><b>Preorder</b><code>Root → Left → Right</code><p class="sub">Useful for copying or serializing a tree.</p></div>
+          <div class="method"><b>Inorder</b><code>Left → Root → Right</code><p class="sub">Gives sorted order in a binary search tree.</p></div>
+          <div class="method"><b>Postorder</b><code>Left → Right → Root</code><p class="sub">Useful when deleting or evaluating a tree.</p></div>
+        </div>
+        <div style="margin-top:10px" class="method"><b>Level-order (BFS)</b><code>Visit level by level using a queue (FIFO)</code><p class="sub">Useful when processing nodes by depth.</p></div>
+      </section>
+    </div>
+    <div>
+      <section class="panel">
+        <h2>03 · Node visit trace</h2>
+        <p class="sub">A trace shows the sequence generated by the selected algorithm.</p>
+        <table><thead><tr><th>Step</th><th>Node</th><th>Category</th></tr></thead><tbody id="trace"><tr><td colspan="3" style="color:#64748b">Run a traversal to populate the trace.</td></tr></tbody></table>
+      </section>
+      <section class="panel">
+        <h2>04 · Queue visualization</h2>
+        <p class="sub">Level-order uses a queue: first in, first out. The next node is removed from the front.</p>
+        <div style="font-size:.8rem;color:#64748b;font-weight:800;margin-bottom:6px">FRONT →</div>
+        <div class="queue" id="queue"><span style="color:#64748b;background:transparent">Queue appears during level-order traversal</span></div>
+        <p class="sub" id="queue-note" style="margin:10px 0 0">Queue is only used by the iterative level-order method.</p>
+      </section>
+      <section class="panel">
+        <h2>05 · Complexity comparison</h2>
+        <p class="sub">For n nodes, all four traversals take linear time because each node is processed once.</p>
+        <div class="chart">
+          <div class="bar-row"><span>Preorder</span><div class="bar-track"><div class="bar-fill blue" style="width:100%"></div></div><b>O(n)</b></div>
+          <div class="bar-row"><span>Inorder</span><div class="bar-track"><div class="bar-fill purple" style="width:100%"></div></div><b>O(n)</b></div>
+          <div class="bar-row"><span>Postorder</span><div class="bar-track"><div class="bar-fill green" style="width:100%"></div></div><b>O(n)</b></div>
+          <div class="bar-row"><span>Level-order</span><div class="bar-track"><div class="bar-fill orange" style="width:100%"></div></div><b>O(n)</b></div>
+        </div>
+        <table style="margin-top:16px"><thead><tr><th>Method</th><th>Auxiliary space</th><th>Approach</th></tr></thead><tbody>
+          <tr><td>Preorder</td><td>O(h)</td><td>Recursive DFS</td></tr><tr><td>Inorder</td><td>O(h)</td><td>Recursive DFS</td></tr><tr><td>Postorder</td><td>O(h)</td><td>Recursive DFS</td></tr><tr><td>Level-order</td><td>O(w), worst O(n)</td><td>Iterative BFS</td></tr>
+        </tbody></table>
+        <div class="note" style="margin-top:14px"><b>Key:</b> n = number of nodes, h = tree height, w = maximum width. Recursive DFS uses the call stack; level-order uses a queue. In the worst case, auxiliary space can be O(n).</div>
+      </section>
+    </div>
+  </div>
+  <section class="panel">
+    <h2>06 · Algorithm pseudocode</h2>
+    <p class="sub">Use these concise steps in the written assignment or viva.</p>
+    <div class="method-grid">
+      <div class="method"><b>Recursive preorder</b><code>preorder(node):</code><br>if node is null: return<br>visit(node)<br>preorder(node.left)<br>preorder(node.right)</div>
+      <div class="method"><b>Recursive inorder</b><code>inorder(node):</code><br>if node is null: return<br>inorder(node.left)<br>visit(node)<br>inorder(node.right)</div>
+      <div class="method"><b>Recursive postorder</b><code>postorder(node):</code><br>if node is null: return<br>postorder(node.left)<br>postorder(node.right)<br>visit(node)</div>
+    </div>
+    <div class="method" style="margin-top:10px"><b>Iterative level-order</b> Create an empty queue, enqueue the root. While the queue is not empty: dequeue a node, visit it, then enqueue its left child and right child if they exist.</div>
+  </section>
+</main>
+<footer>TreeLab · DSA assignment working model · Built for demonstration and learning</footer>
+<script>
+const names={A:"Electronics",B:"Computers",C:"Devices",D:"Phones",E:"Laptops",F:"Audio",G:"Cameras"};
+const orders={pre:["A","B","D","E","C","F","G"],in:["D","B","E","A","F","C","G"],post:["D","E","B","F","G","C","A"],level:["A","B","C","D","E","F","G"]};
+const methodNames={pre:"Preorder (Root–Left–Right)",in:"Inorder (Left–Root–Right)",post:"Postorder (Left–Right–Root)",level:"Level-order (queue / BFS)"};
+let sequence=orders.pre,index=0,timer=null;
+const $=id=>document.getElementById(id);
+function clearTimer(){if(timer){clearInterval(timer);timer=null} $("play").textContent="▶ Play"}
+function draw(){
+ document.querySelectorAll(".node").forEach(n=>{n.classList.remove("visited","current","done")});
+ document.querySelectorAll(".edge").forEach(e=>e.classList.remove("active"));
+ const current=sequence[index-1];
+ sequence.slice(0,index).forEach((id,i)=>{const n=document.querySelector(`[data-node="${id}"]`);if(n)n.classList.add(i===index-1?"current":"visited")});
+ if(index>=sequence.length)document.querySelectorAll(".node").forEach(n=>{n.classList.remove("current");n.classList.add("done")});
+ const edgeMap={"B":"A-B","C":"A-C","D":"B-D","E":"B-E","F":"C-F","G":"C-G"};
+ if(current&&edgeMap[current]){const e=document.querySelector(`[data-edge="${edgeMap[current]}"]`);if(e)e.classList.add("active")}
+ $("progress").style.width=(index/sequence.length*100)+"%";
+ $("visits").innerHTML=index?sequence.slice(0,index).map((id,i)=>`<span class="pill ${i===index-1&&index<sequence.length?'current':''}">${i+1}. ${id}</span>`).join(""):'<span style="color:#64748b">Visited nodes will appear here…</span>';
+ $("status").textContent=index===sequence.length?`${methodNames[$("method").value]} complete — all 7 nodes visited.`:index?`Step ${index} of ${sequence.length}: visited ${current} (${names[current]}).`:`Ready: ${methodNames[$("method").value]}.`;
+ $("trace").innerHTML=index?sequence.slice(0,index).map((id,i)=>`<tr><td>${i+1}</td><td><b>${id}</b></td><td>${names[id]}</td></tr>`).join(""):'<tr><td colspan="3" style="color:#64748b">Run a traversal to populate the trace.</td></tr>';
+ if($("method").value==="level"){
+   const remaining=sequence.slice(index);
+   $("queue").innerHTML=remaining.length?remaining.map((id,i)=>`<span style="${i===0?'background:#ffedd5;color:#9a3412':''}">${id}</span>`).join(""):'<span style="background:#d1fae5;color:#065f46">Empty</span>';
+   $("queue-note").textContent=index<sequence.length?`Front item is ${remaining[0]}; it will be processed next. This simplified trace displays remaining visit order.`:"Traversal finished: the queue is empty.";
+ } else {$("queue").innerHTML='<span style="color:#64748b;background:transparent">Not used by recursive DFS</span>';$("queue-note").textContent="Preorder, inorder and postorder use recursive function calls (the call stack), not a queue."}
+ $("step").disabled=index>=sequence.length;
+}
+function reset(){clearTimer();index=0;sequence=orders[$("method").value];draw()}
+function step(){if(index<sequence.length){index++;draw()}if(index>=sequence.length)clearTimer()}
+$("method").addEventListener("change",reset);
+$("reset").addEventListener("click",reset);
+$("step").addEventListener("click",step);
+$("play").addEventListener("click",()=>{if(timer){clearTimer();return}if(index>=sequence.length)reset();$("play").textContent="❚❚ Pause";timer=setInterval(step,850)});
+reset();
+</script>
+</body>
+</html>
